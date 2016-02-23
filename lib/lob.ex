@@ -1,5 +1,6 @@
 defmodule Lob do
   require Poison
+  import Bitwise
 
   @type maybe_binary :: binary | nil
 
@@ -24,12 +25,12 @@ defmodule Lob do
   defp decode_rest(r,s)  when s <= 6   do
       bits = 8 * s
       << <<h::size(bits)>>, <<b::binary>> >> = r
-      Lob.DecodedPacket.__build__((h|>to_binary), nil, b)
+      Lob.DecodedPacket.__build__((h|>to_binary(s)), nil, b)
   end
   defp decode_rest(r,s) when s > 6 do
       bits = 8 * s
       << <<h::size(bits)>>, <<body::binary>> >> = r
-      head = h |> to_binary
+      head = h |> to_binary(s)
       json = case head |> Poison.decode do
             {:ok, j}        -> j
             e               -> e
@@ -37,10 +38,9 @@ defmodule Lob do
       Lob.DecodedPacket.__build__(head, json, body)
   end
 
-  @spec to_binary(integer) :: binary
-  defp to_binary(p) when is_integer(p) do
-    {:ok, s} = p |> Integer.to_string(16) |> Base.decode16
-    s
-  end
+  @spec to_binary(integer, integer) :: binary
+  defp to_binary(p,s) when is_integer(p), do: extract_char(p, s, <<>>)
+  defp extract_char(_p, 0, acc),          do: acc
+  defp extract_char(p, n, acc),           do: extract_char(p, n-1, acc <> << (bsr(p,8*(n-1)) &&& 0xff) >>)
 
 end
