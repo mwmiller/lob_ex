@@ -10,9 +10,8 @@ defmodule Lob do
   end
 
   @spec encode(maybe_binary | map , maybe_binary) :: binary | no_return
-  def encode(nil,nil),                        do: head_size("")
-  def encode(nil,body),                       do: head_size("")<>body
-  def encode(head,nil)  when is_binary(head), do: head_size(head)<>head
+  def encode(head,body) when is_nil(head),    do: encode("",body)
+  def encode(head,body) when is_nil(body),    do: encode(head,"")
   def encode(head,body) when is_binary(head), do: head_size(head)<>head<>body
   def encode(head,body) when is_map(head),    do: encode(head |> Poison.encode!, body)
 
