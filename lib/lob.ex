@@ -18,7 +18,7 @@ defmodule Lob do
 
   defp right_size(s) when byte_size(s) < 0xffff, do: << byte_size(s)::size(16) >>
 
-  @spec decode_rest(binary, char) :: Lob.DecodedPacket.t | no_return
+  @spec decode_rest(binary, char) :: Lob.DecodedPacket.t
   defp decode_rest(r,_s) when r == "", do: %Lob.DecodedPacket{}
   defp decode_rest(r,s) when s == 0, do: Lob.DecodedPacket.__build__(nil,nil,r)
   defp decode_rest(r,s) when s <= 6 do
