@@ -10,13 +10,14 @@ defmodule Lob do
   end
 
   @spec encode(maybe_binary | map , maybe_binary) :: binary | no_return
-  def encode(nil,nil),                        do: right_size("")
-  def encode(nil,body),                       do: right_size("")<>body
-  def encode(head,nil)  when is_binary(head), do: right_size(head)<>head
-  def encode(head,body) when is_binary(head), do: right_size(head)<>head<>body
+  def encode(nil,nil),                        do: head_size("")
+  def encode(nil,body),                       do: head_size("")<>body
+  def encode(head,nil)  when is_binary(head), do: head_size(head)<>head
+  def encode(head,body) when is_binary(head), do: head_size(head)<>head<>body
   def encode(head,body) when is_map(head),    do: encode(head |> Poison.encode!, body)
 
-  defp right_size(s) when byte_size(s) < 0xffff, do: << byte_size(s)::size(16) >>
+  defp head_size(s) when byte_size(s) <= 0xffff, do: << byte_size(s)::size(16) >>
+  defp head_size(s) when byte_size(s) >  0xffff, do: raise("Head payload too large.")
 
   @spec decode_rest(binary, char) :: Lob.DecodedPacket.t
   defp decode_rest(r,_s) when r == "", do: %Lob.DecodedPacket{}
