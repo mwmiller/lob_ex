@@ -4,12 +4,18 @@ defmodule Lob.DecodedPacket do
   @type t :: %__MODULE__{}
 
   @doc false
-  def __build__(nil,nil,b), do: %Lob.DecodedPacket{body_length: byte_size(b), body: b,}
-  def __build__(h,j,b) when b == "", do: %Lob.DecodedPacket{head_length: byte_size(h), head: h, json: j,}
-  def __build__(h,j,b), do: %Lob.DecodedPacket{head_length: byte_size(h),
-                                                        head:        h,
-                                                        json:        j,
-                                                        body_length: byte_size(b),
-                                                        body:        b,
-                                                       }
+  def __build__(nil,nil,b),          do: %Lob.DecodedPacket{body_length: byte_size(b),
+                                                            body: b,
+                                                           }
+  # As a sort of implementation detail, body is not nil here, just ""
+  def __build__(h,j,b) when b == "", do: %Lob.DecodedPacket{head_length: byte_size(h),
+                                                            head: h,
+                                                            json: j,
+                                                            }
+  def __build__(h,j,b),              do: %Lob.DecodedPacket{head_length: byte_size(h),
+                                                            head:        h,
+                                                            json:        j,
+                                                            body_length: byte_size(b),
+                                                            body:        b,
+                                                           }
 end
