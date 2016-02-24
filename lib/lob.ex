@@ -39,8 +39,8 @@ defmodule Lob do
   end
 
   @spec to_binary(integer, integer) :: binary
-  defp to_binary(p,s) when is_integer(p), do: extract_char(p, s, <<>>)
-  defp extract_char(_p, 0, acc),          do: acc
-  defp extract_char(p, n, acc),           do: extract_char(p, n-1, acc <> << (bsr(p,8*(n-1)) &&& 0xff) >>)
+  defp to_binary(p,s) when is_integer(p), do: binary_from_integer(p, s, [])
+  defp binary_from_integer(_p, 0, acc),   do: acc |> Enum.reverse |> Enum.join
+  defp binary_from_integer(p, n, acc),    do: binary_from_integer(p, n-1, [<< (bsr(p,8*(n-1)) &&& 0xff) >>|acc])
 
 end
