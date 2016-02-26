@@ -3,7 +3,7 @@ defmodule LobTest do
   doctest Lob
 
   test "Telehash example decode" do
-    decoded_packet = Lob.decode(TelehashExample.hex_string, true)
+    decoded_packet = Lob.decode(TelehashExample.test_string)
 
     assert decoded_packet.head_length == TelehashExample.head_length
     assert decoded_packet.head == TelehashExample.head
@@ -14,7 +14,7 @@ defmodule LobTest do
   end
 
   test "Telehash example encode" do
-    assert Lob.encode(TelehashExample.head, TelehashExample.body) |> Base.encode16(case: :lower) == TelehashExample.hex_string
+    assert Lob.encode(TelehashExample.head, TelehashExample.body) == TelehashExample.test_string
   end
 
   test "no message" do
@@ -53,6 +53,17 @@ defmodule LobTest do
     assert back_out.head_length == 0
     assert back_out.head == nil
     assert back_out.json == nil
+  end
+
+  test "Telehash example decloak" do
+    decoded_packet = Lob.decloak(TelehashCloaked.test_string)
+
+    assert decoded_packet.head_length == TelehashCloaked.head_length
+    assert decoded_packet.head == TelehashCloaked.head
+    assert decoded_packet.json == TelehashCloaked.json
+    assert decoded_packet.body_length == TelehashCloaked.body_length
+    assert decoded_packet.body == TelehashCloaked.body
+    assert decoded_packet.cloaked == TelehashCloaked.cloaked
   end
 
 end

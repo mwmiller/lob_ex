@@ -3,7 +3,7 @@ defmodule Lob.Mixfile do
 
   def project do
     [app: :lob,
-     version: "0.0.1",
+     version: "0.0.2",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -16,6 +16,7 @@ defmodule Lob.Mixfile do
 
   defp deps do
     [
+    {:chacha20, "~> 0.3"},
     {:poison, "~> 2.1"},
     {:power_assert, "~> 0.0.8", only: :test},
     ]

@@ -1,6 +1,6 @@
 defmodule Lob.DecodedPacket do
 
-  defstruct head_length: 0, head: nil, json: nil, body_length: 0, body: nil
+  defstruct head_length: 0, head: nil, json: nil, body_length: 0, body: nil, cloaked: 0
   @type t :: %__MODULE__{}
 
   @doc false

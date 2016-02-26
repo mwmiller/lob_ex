@@ -1,12 +1,12 @@
 defmodule Lob do
   require Poison
-  import Bitwise
+  require Chacha20
 
   @type maybe_binary :: binary | nil
 
-  @spec decode(binary, boolean) :: Lob.DecodedPacket.t | no_return
-  def decode(packet, hex \\ false) do
-      {:ok, << <<s::size(16)>>, <<rest::binary>> >>} = if hex, do: Base.decode16(packet, case: :mixed), else: {:ok, packet}
+  @spec decode(binary) :: Lob.DecodedPacket.t | no_return
+  def decode(packet) do
+      << <<s::size(16)>>, <<rest::binary>> >> = packet
       rest |> decode_rest(s)
   end
 
@@ -25,12 +25,12 @@ defmodule Lob do
   defp decode_rest(r,s)  when s <= 6   do
       bits = 8 * s
       << <<h::size(bits)>>, <<b::binary>> >> = r
-      Lob.DecodedPacket.__build__((h|>to_binary(s)), nil, b)
+      Lob.DecodedPacket.__build__((h|>:binary.encode_unsigned), nil, b)
   end
   defp decode_rest(r,s) when s > 6 do
       bits = 8 * s
       << <<h::size(bits)>>, <<body::binary>> >> = r
-      head = h |> to_binary(s)
+      head = h |> :binary.encode_unsigned
       json = case head |> Poison.decode do
             {:ok, j}        -> j
             e               -> e
@@ -38,9 +38,48 @@ defmodule Lob do
       Lob.DecodedPacket.__build__(head, json, body)
   end
 
-  @spec to_binary(integer, integer) :: binary
-  defp to_binary(p,s) when is_integer(p), do: binary_from_integer(p, s, [])
-  defp binary_from_integer(_p, 0, acc),   do: acc |> Enum.reverse |> Enum.join
-  defp binary_from_integer(p, n, acc),    do: binary_from_integer(p, n-1, [<< (bsr(p,8*(n-1)) &&& 0xff) >>|acc])
+  # SHA256 of "telehash"
+  defp cloak_key, do: <<215, 240, 229, 85, 84, 98, 65, 178, 169, 68, 236, 214, 208, 222, 102, 133, 106, 197, 11, 11, 171, 167, 106, 111, 90, 71, 130, 149, 108, 169, 69, 154>>
+
+  @spec cloak(binary) :: binary
+  @doc """
+  Cloak a packet to frustrate wire monitoring
+
+  A random number (between 1 and 20) rounds are applied.  This also
+  serves to slightly obfuscate the message size.
+  """
+  def  cloak(b), do: cloak_loop(b, :crypto.rand_uniform(1,20))
+  defp cloak_loop(b,0), do: b
+  defp cloak_loop(b,rounds) do
+    n = make_nonce
+    cloak_loop(n<>Chacha20.crypt(b,cloak_key,n), rounds - 1)
+  end
+
+  defp make_nonce do
+    n = :crypto.strong_rand_bytes(8)
+    if (binary_part(n,0,1) == <<0>>) do
+      make_nonce
+    else
+      n
+    end
+  end
+
+
+  @spec decloak(binary) :: Lob.DecodedPacket.t | no_return
+  @doc """
+  De-cloak a cloaked packet.
+
+  Upon success, the decoded packet will have the number of cloaking rounds unfurled
+  in the `cloaked` property.
+  """
+  def decloak(b), do: decloak_loop(b, 0)
+  def decloak_loop(b,r) do
+    if (binary_part(b, 0, 1) == <<0>>) do
+        %{decode(b)  | "cloaked": r}
+    else
+      <<nonce::size(64), ct::binary>> = b
+      decloak_loop(Chacha20.crypt(ct,cloak_key,:binary.encode_unsigned(nonce)), r+1)
+    end
+  end
 
 end
