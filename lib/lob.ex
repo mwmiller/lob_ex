@@ -2,8 +2,20 @@ defmodule Lob do
   require Poison
   require Chacha20
 
+  @moduledoc """
+  Length-Object-Binary (LOB) Packet Encoding
+
+  Data serialization, primarily in use by the [Telehash Project](http://telehash.org)
+  """
+
   @type maybe_binary :: binary | nil
 
+  @doc """
+  Decode a wire packet for consumption
+
+  The parts are returned in a struct compliant with the specification.
+  Errors reflecting improperly decoded JSON are stores in the `json` field.
+  """
   @spec decode(binary) :: Lob.DecodedPacket.t | no_return
   def decode(packet) do
       << <<s::size(16)>>, <<rest::binary>> >> = packet
@@ -11,6 +23,12 @@ defmodule Lob do
   end
 
   @spec encode(maybe_binary | map , maybe_binary) :: binary | no_return
+  @doc """
+  Encode a head and body into a packet
+
+  The packet should be usable across any supported transport.  May raise an
+  exception if the payload is too large or there are encoding errors.
+  """
   def encode(head,body) when is_nil(head),    do: encode("",body)
   def encode(head,body) when is_nil(body),    do: encode(head,"")
   def encode(head,body) when is_binary(head), do: head_size(head)<>head<>body
@@ -45,7 +63,7 @@ defmodule Lob do
   @doc """
   Cloak a packet to frustrate wire monitoring
 
-  A random number (between 1 and 20) rounds are applied.  This also
+  A random number (between 1 and 20) of rounds are applied.  This also
   serves to slightly obfuscate the message size.
   """
   def  cloak(b), do: cloak_loop(b, :crypto.rand_uniform(1,20))
@@ -70,10 +88,10 @@ defmodule Lob do
   De-cloak a cloaked packet.
 
   Upon success, the decoded packet will have the number of cloaking rounds unfurled
-  in the `cloaked` property.
+  in the `cloaked` field.
   """
-  def decloak(b), do: decloak_loop(b, 0)
-  def decloak_loop(b,r) do
+  def  decloak(b), do: decloak_loop(b, 0)
+  defp decloak_loop(b,r) do
     if (binary_part(b, 0, 1) == <<0>>) do
         %{decode(b)  | "cloaked": r}
     else

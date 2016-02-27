@@ -1,5 +1,18 @@
 defmodule Lob.DecodedPacket do
 
+  @moduledoc """
+  A struct representing a decoded LOB packet
+
+  The following fields are available:
+
+  - head_length: the length of the encoded HEAD
+  - head: HEAD contents
+  - json: the decoded HEAD object, if appropriate
+  - body_length: the length of the encoded BODY
+  - body: BODY contents
+  - cloaked: the number of cloaking rounds unwrapped
+  """
+
   defstruct head_length: 0, head: nil, json: nil, body_length: 0, body: nil, cloaked: 0
   @type t :: %__MODULE__{}
 
