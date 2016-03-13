@@ -14,13 +14,10 @@ defmodule Lob do
   Decode a wire packet for consumption
 
   The parts are returned in a struct compliant with the specification.
-  Errors reflecting improperly decoded JSON are stores in the `json` field.
+  Errors reflecting improperly decoded JSON are stored in the `json` field.
   """
   @spec decode(binary) :: Lob.DecodedPacket.t | no_return
-  def decode(packet) do
-      << <<s::size(16)>>, <<rest::binary>> >> = packet
-      rest |> decode_rest(s)
-  end
+  def decode(<<s::size(16), rest::binary>>), do: rest |> decode_rest(s)
 
   @spec encode(maybe_binary | map , maybe_binary) :: binary | no_return
   @doc """
@@ -40,19 +37,17 @@ defmodule Lob do
   @spec decode_rest(binary, char) :: Lob.DecodedPacket.t
   defp decode_rest(r,_s) when r == "", do: %Lob.DecodedPacket{}
   defp decode_rest(r,s)  when s == 0,  do: Lob.DecodedPacket.__build__(nil,nil,r)
-  defp decode_rest(r,s)  when s <= 6   do
-      bits = 8 * s
-      << <<h::size(bits)>>, <<b::binary>> >> = r
-      Lob.DecodedPacket.__build__((h|>:binary.encode_unsigned), nil, b)
-  end
-  defp decode_rest(r,s) when s > 6 do
+  defp decode_rest(r,s)                do
       bits = 8 * s
       << <<h::size(bits)>>, <<body::binary>> >> = r
       head = h |> :binary.encode_unsigned
-      json = case head |> Poison.decode do
-            {:ok, j}        -> j
-            e               -> e
-      end
+      json = if s <= 6 do
+                nil
+             else case head |> Poison.decode do
+                       {:ok, j}        -> j
+                       e               -> e
+                  end
+            end
       Lob.DecodedPacket.__build__(head, json, body)
   end
 
@@ -75,10 +70,9 @@ defmodule Lob do
 
   defp make_nonce do
     n = :crypto.strong_rand_bytes(8)
-    if (binary_part(n,0,1) == <<0>>) do
-      make_nonce
-    else
-      n
+    case binary_part(n,0,1) do
+      <<0>> -> make_nonce
+      _     -> n
     end
   end
 
