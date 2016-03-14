@@ -38,9 +38,7 @@ defmodule Lob do
   defp decode_rest(r,_s) when r == "", do: %Lob.DecodedPacket{}
   defp decode_rest(r,s)  when s == 0,  do: Lob.DecodedPacket.__build__(nil,nil,r)
   defp decode_rest(r,s)                do
-      bits = 8 * s
-      << <<h::size(bits)>>, <<body::binary>> >> = r
-      head = h |> :binary.encode_unsigned
+      << head::binary-size(s), body::binary >> = r
       json = if s <= 6 do
                 nil
              else case head |> Poison.decode do
@@ -89,8 +87,8 @@ defmodule Lob do
     if (binary_part(b, 0, 1) == <<0>>) do
         %{decode(b)  | "cloaked": r}
     else
-      <<nonce::size(64), ct::binary>> = b
-      decloak_loop(Chacha20.crypt(ct,cloak_key,:binary.encode_unsigned(nonce)), r+1)
+      <<nonce::binary-size(8), ct::binary>> = b
+      decloak_loop(Chacha20.crypt(ct,cloak_key,nonce), r+1)
     end
   end
 
