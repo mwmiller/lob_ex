@@ -83,13 +83,7 @@ defmodule Lob do
   in the `cloaked` field.
   """
   def  decloak(b), do: decloak_loop(b, 0)
-  defp decloak_loop(b,r) do
-    if (binary_part(b, 0, 1) == <<0>>) do
-        %{decode(b)  | "cloaked": r}
-    else
-      <<nonce::binary-size(8), ct::binary>> = b
-      decloak_loop(Chacha20.crypt(ct,cloak_key,nonce), r+1)
-    end
-  end
+  defp decloak_loop(<<0,_rest::binary>>=b,r),                 do: %{decode(b)  | "cloaked": r}
+  defp decloak_loop(<<nonce::binary-size(8), ct::binary>>,r), do: decloak_loop(Chacha20.crypt(ct,cloak_key,nonce), r+1)
 
 end

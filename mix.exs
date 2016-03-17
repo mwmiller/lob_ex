@@ -3,7 +3,7 @@ defmodule Lob.Mixfile do
 
   def project do
     [app: :lob,
-     version: "0.0.4",
+     version: "0.1.0",
      elixir: "~> 1.2",
      name: "Lob",
      source_url: "https://github.com/mwmiller/lob_ex",
