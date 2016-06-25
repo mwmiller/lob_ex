@@ -3,8 +3,8 @@ defmodule Lob.Mixfile do
 
   def project do
     [app: :lob,
-     version: "0.1.0",
-     elixir: "~> 1.2",
+     version: "0.1.1",
+     elixir: "~> 1.3",
      name: "Lob",
      source_url: "https://github.com/mwmiller/lob_ex",
      build_embedded: Mix.env == :prod,
@@ -24,8 +24,7 @@ defmodule Lob.Mixfile do
       {:chacha20, "~> 0.3"},
       {:poison, "~> 2.1"},
       {:earmark, "~> 0.2", only: :dev},
-      {:ex_doc, "~> 0.11", only: :dev},
-      {:power_assert, "~> 0.0.8", only: :test},
+      {:ex_doc, "~> 0.12", only: :dev},
     ]
   end
 

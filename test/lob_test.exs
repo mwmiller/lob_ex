@@ -1,5 +1,5 @@
 defmodule LobTest do
-  use PowerAssert
+  use ExUnit.Case
   doctest Lob
 
   test "Telehash example decode" do
