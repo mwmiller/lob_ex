@@ -3,7 +3,7 @@ defmodule Lob.Mixfile do
 
   def project do
     [app: :lob,
-     version: "0.1.1",
+     version: "0.1.2",
      elixir: "~> 1.3",
      name: "Lob",
      source_url: "https://github.com/mwmiller/lob_ex",
@@ -23,8 +23,8 @@ defmodule Lob.Mixfile do
     [
       {:chacha20, "~> 0.3"},
       {:poison, "~> 2.1"},
-      {:earmark, "~> 0.2", only: :dev},
-      {:ex_doc, "~> 0.12", only: :dev},
+      {:earmark, "~> 1.0", only: :dev},
+      {:ex_doc, "~> 0.13", only: :dev},
     ]
   end
 
