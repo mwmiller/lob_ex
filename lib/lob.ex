@@ -62,14 +62,14 @@ defmodule Lob do
   def  cloak(b), do: cloak_loop(b, :crypto.rand_uniform(1,20))
   defp cloak_loop(b,0), do: b
   defp cloak_loop(b,rounds) do
-    n = make_nonce
-    cloak_loop(n<>Chacha20.crypt(b,cloak_key,n), rounds - 1)
+    n = make_nonce()
+    cloak_loop(n<>Chacha20.crypt(b,cloak_key(),n), rounds - 1)
   end
 
   defp make_nonce do
     n = :crypto.strong_rand_bytes(8)
     case binary_part(n,0,1) do
-      <<0>> -> make_nonce
+      <<0>> -> make_nonce()
       _     -> n
     end
   end
@@ -84,6 +84,6 @@ defmodule Lob do
   """
   def  decloak(b), do: decloak_loop(b, 0)
   defp decloak_loop(<<0,_rest::binary>>=b,r),                 do: %{decode(b)  | "cloaked": r}
-  defp decloak_loop(<<nonce::binary-size(8), ct::binary>>,r), do: decloak_loop(Chacha20.crypt(ct,cloak_key,nonce), r+1)
+  defp decloak_loop(<<nonce::binary-size(8), ct::binary>>,r), do: decloak_loop(Chacha20.crypt(ct,cloak_key(),nonce), r+1)
 
 end
