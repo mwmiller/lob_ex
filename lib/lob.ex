@@ -26,18 +26,18 @@ defmodule Lob do
   The packet should be usable across any supported transport.  May raise an
   exception if the payload is too large or there are encoding errors.
   """
-  def encode(head,body) when is_nil(head),    do: encode("",body)
-  def encode(head,body) when is_nil(body),    do: encode(head,"")
-  def encode(head,body) when is_binary(head), do: head_size(head)<>head<>body
-  def encode(head,body) when is_map(head),    do: encode(head |> Poison.encode!, body)
+  def encode(head, body) when is_nil(head),    do: encode("", body)
+  def encode(head, body) when is_nil(body),    do: encode(head, "")
+  def encode(head, body) when is_binary(head), do: head_size(head) <> head <> body
+  def encode(head, body) when is_map(head),    do: encode(head |> Poison.encode!, body)
 
   defp head_size(s) when byte_size(s) <= 0xffff, do: << byte_size(s)::size(16) >>
   defp head_size(s) when byte_size(s) >  0xffff, do: raise("Head payload too large.")
 
   @spec decode_rest(binary, char) :: Lob.DecodedPacket.t
-  defp decode_rest(r,_s) when r == "", do: %Lob.DecodedPacket{}
-  defp decode_rest(r,s)  when s == 0,  do: Lob.DecodedPacket.__build__(nil,nil,r)
-  defp decode_rest(r,s)                do
+  defp decode_rest(r, _s) when r == "", do: %Lob.DecodedPacket{}
+  defp decode_rest(r, s)  when s == 0,  do: Lob.DecodedPacket.__build__(nil, nil, r)
+  defp decode_rest(r, s)                do
       << head::binary-size(s), body::binary >> = r
       json = if s <= 6 do
                 nil
@@ -59,16 +59,16 @@ defmodule Lob do
   A random number (between 1 and 20) of rounds are applied.  This also
   serves to slightly obfuscate the message size.
   """
-  def  cloak(b), do: cloak_loop(b, :crypto.rand_uniform(1,20))
-  defp cloak_loop(b,0), do: b
-  defp cloak_loop(b,rounds) do
+  def  cloak(b), do: cloak_loop(b, :rand.uniform(20))
+  defp cloak_loop(b, 0), do: b
+  defp cloak_loop(b, rounds) do
     n = make_nonce()
-    cloak_loop(n<>Chacha20.crypt(b,cloak_key(),n), rounds - 1)
+    cloak_loop(n <> Chacha20.crypt(b, cloak_key(), n), rounds - 1)
   end
 
   defp make_nonce do
     n = :crypto.strong_rand_bytes(8)
-    case binary_part(n,0,1) do
+    case binary_part(n, 0, 1) do
       <<0>> -> make_nonce()
       _     -> n
     end
@@ -83,7 +83,7 @@ defmodule Lob do
   in the `cloaked` field.
   """
   def  decloak(b), do: decloak_loop(b, 0)
-  defp decloak_loop(<<0,_rest::binary>>=b,r),                 do: %{decode(b)  | "cloaked": r}
-  defp decloak_loop(<<nonce::binary-size(8), ct::binary>>,r), do: decloak_loop(Chacha20.crypt(ct,cloak_key(),nonce), r+1)
+  defp decloak_loop(<<0, _rest::binary>> = b, r),               do: %{decode(b)  | "cloaked": r}
+  defp decloak_loop(<<nonce::binary-size(8),  ct::binary>>, r), do: decloak_loop(Chacha20.crypt(ct, cloak_key(), nonce), r + 1)
 
 end
