@@ -1,5 +1,4 @@
 defmodule Lob do
-  require Poison
   require Chacha20
 
   @moduledoc """
@@ -29,7 +28,7 @@ defmodule Lob do
   def encode(head, body) when is_nil(head), do: encode("", body)
   def encode(head, body) when is_nil(body), do: encode(head, "")
   def encode(head, body) when is_binary(head), do: head_size(head) <> head <> body
-  def encode(head, body) when is_map(head), do: encode(head |> Poison.encode!(), body)
+  def encode(head, body) when is_map(head), do: encode(Jason.encode!(head), body)
 
   defp head_size(s) when byte_size(s) <= 0xFFFF, do: <<byte_size(s)::size(16)>>
   defp head_size(s) when byte_size(s) > 0xFFFF, do: raise("Head payload too large.")
@@ -45,7 +44,7 @@ defmodule Lob do
       if s <= 6 do
         nil
       else
-        case head |> Poison.decode() do
+        case Jason.decode(head) do
           {:ok, j} -> j
           e -> e
         end
