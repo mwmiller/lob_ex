@@ -24,9 +24,8 @@ defmodule Lob.Mixfile do
     [
       {:chacha20, "~> 1.0"},
       {:jason, "~> 1.0"},
-      {:earmark, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.14", only: :dev},
-      {:credo, "~> 1.0", only: [:dev, :test]}
+      {:earmark, "~> 1.4", only: :dev},
+      {:ex_doc, "~> 0.23", only: :dev},
     ]
   end
 
